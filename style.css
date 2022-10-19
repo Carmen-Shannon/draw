@@ -1,0 +1,36 @@
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+    background-color: darkgrey;
+}
+
+#game {
+    background-color: #faeddd;
+    display: block;
+    margin: auto;
+    border-radius: 30px;
+}
+
+#tools {
+    background-color: white;
+    height: 50px;
+    width: 800px;
+    margin: auto;
+    border-radius: 0px 0px 8px 8px;
+    display: flex;
+}
+
+button {
+    width: 60px;
+    height: 60px;
+}
+
+#preview {
+    border-radius: 50%;
+    background-color: black;
+    justify-self: flex-end;
+    align-self: center;
+}
