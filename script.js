@@ -1,21 +1,22 @@
-// GLOBAL VARIABLES
-const canvas = document.querySelector("#game");
-const ctx = canvas.getContext("2d");
-const colorPicker = document.getElementById("color");
-const preview = document.getElementById("preview");
-const eraser = document.getElementById("eraser");
-const clear = document.getElementById("clear");
-const bigger = document.getElementById("bigger");
-const smaller = document.getElementById("smaller");
-const modal = document.getElementById("colormodal");
-const closeBtn = document.getElementById("closemodal");
+// Global Variables
+import {
+  canvas,
+  ctx,
+  colorPicker,
+  preview,
+  eraser,
+  clear,
+  bigger,
+  smaller,
+  modal,
+  closeBtn,
+} from "/js/Globals.js";
 
 // modifiable variables
 let painting = false;
 let erasing = false;
 let lineSize = 10;
 let color = "black";
-let tempColor = "";
 
 // functions
 function colorModalOnClick() {
@@ -23,6 +24,7 @@ function colorModalOnClick() {
     if (c.id === "closemodal") continue;
     c.addEventListener("click", () => {
       color = c.id;
+      erasing = false;
       colorChange();
       recolor();
     });
@@ -53,31 +55,39 @@ function setColors() {
   }
 }
 
+function showModal() {
+  modal.style.display = "flex";
+  modal.style.flexWrap = "wrap";
+  modal.style.width = "240px";
+  modal.style.height = "150px";
+  modal.style.justifyContent = "center";
+  modal.style.alignItems = "center";
+  modal.style.margin = "10px";
+  modal.style.padding = "20px";
+  modal.style.paddingTop = "40px";
+  modal.style.backgroundColor = "#faeddd";
+  modal.style.border = "2px solid black";
+  modal.style.position = "absolute";
+  modal.style.top = `${colorPicker.offsetTop + colorPicker.offsetWidth}px`;
+  modal.style.left = `${colorPicker.offsetLeft - 120}px`;
+  closeBtn.style.position = "fixed";
+  closeBtn.style.display = "block";
+  closeBtn.style.top =
+    modal.offsetTop + Math.round(modal.offsetHeight * 0.05) + "px";
+  closeBtn.style.left =
+    modal.offsetLeft + Math.round(modal.offsetWidth * 0.9) + "px";
+}
+
+function hideModal() {
+  modal.style.display = "none";
+}
+
 function toggleModal() {
   if (modal.style.display === "none") {
-    modal.style.display = "flex";
-    modal.style.flexWrap = "wrap";
-    modal.style.width = "240px";
-    modal.style.height = "150px";
-    modal.style.justifyContent = "center";
-    modal.style.alignItems = "center";
-    modal.style.margin = "10px";
-    modal.style.padding = "20px";
-    modal.style.paddingTop = "40px";
-    modal.style.backgroundColor = "#faeddd";
-    modal.style.border = "2px solid black";
-    modal.style.position = "absolute";
-    modal.style.top = `${colorPicker.offsetTop + colorPicker.offsetWidth}px`;
-    modal.style.left = `${colorPicker.offsetLeft - 120}px`;
-    closeBtn.style.position = "fixed";
-    closeBtn.style.display = "block";
-    closeBtn.style.top =
-      modal.offsetTop + Math.round(modal.offsetHeight * 0.05) + "px";
-    closeBtn.style.left =
-      modal.offsetLeft + Math.round(modal.offsetWidth * 0.9) + "px";
+    showModal();
     colorChange();
   } else {
-    modal.style.display = "none";
+    hideModal();
   }
 }
 
@@ -85,6 +95,7 @@ function toggleEraser() {
   erasing = !erasing;
   if (erasing) {
     colorPicker.style.backgroundColor = "#faeddd";
+    preview.style.backgroundColor = "#faeddd";
   } else {
     recolor();
   }
@@ -166,7 +177,6 @@ window.addEventListener("load", () => {
   colorModalOnClick();
 });
 
-//modal.addEventListener("mouseleave", toggleModal);
 closeBtn.addEventListener("click", toggleModal);
 
 // erasing vs painting event

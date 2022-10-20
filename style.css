@@ -5,6 +5,7 @@
 
 body {
     background-color: darkgrey;
+    margin-top: 50px;
 }
 
 #game {
@@ -26,6 +27,7 @@ body {
 button {
     width: 60px;
     height: 60px;
+    user-select: none;
 }
 
 #preview {
@@ -33,6 +35,7 @@ button {
     background-color: black;
     justify-self: flex-end;
     align-self: center;
+    border: 1px solid black;
 }
 
 span {
