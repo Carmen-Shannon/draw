@@ -8,16 +8,19 @@ const clear = document.getElementById("clear");
 const bigger = document.getElementById("bigger");
 const smaller = document.getElementById("smaller");
 const modal = document.getElementById("colormodal");
+const closeBtn = document.getElementById("closemodal");
 
 // modifiable variables
 let painting = false;
 let erasing = false;
 let lineSize = 10;
 let color = "black";
+let tempColor = "";
 
 // functions
 function colorModalOnClick() {
   for (let c of modal.children) {
+    if (c.id === "closemodal") continue;
     c.addEventListener("click", () => {
       color = c.id;
       colorChange();
@@ -28,12 +31,15 @@ function colorModalOnClick() {
 
 function colorChange() {
   for (let c of modal.children) {
+    if (c.id === "closemodal") continue;
     if (c.id === color) {
-      c.style.width = "40px";
-      c.style.height = "40px";
+      c.style.width = "30px";
+      c.style.height = "30px";
+      c.style.margin = "15px";
     } else {
       c.style.width = "60px";
       c.style.height = "60px";
+      c.style.margin = "0px";
     }
   }
 }
@@ -57,8 +63,18 @@ function toggleModal() {
     modal.style.alignItems = "center";
     modal.style.margin = "10px";
     modal.style.padding = "20px";
+    modal.style.paddingTop = "40px";
     modal.style.backgroundColor = "#faeddd";
     modal.style.border = "2px solid black";
+    modal.style.position = "absolute";
+    modal.style.top = `${colorPicker.offsetTop + colorPicker.offsetWidth}px`;
+    modal.style.left = `${colorPicker.offsetLeft - 120}px`;
+    closeBtn.style.position = "fixed";
+    closeBtn.style.display = "block";
+    closeBtn.style.top =
+      modal.offsetTop + Math.round(modal.offsetHeight * 0.05) + "px";
+    closeBtn.style.left =
+      modal.offsetLeft + Math.round(modal.offsetWidth * 0.9) + "px";
     colorChange();
   } else {
     modal.style.display = "none";
@@ -150,7 +166,8 @@ window.addEventListener("load", () => {
   colorModalOnClick();
 });
 
-modal.addEventListener("mouseleave", toggleModal);
+//modal.addEventListener("mouseleave", toggleModal);
+closeBtn.addEventListener("click", toggleModal);
 
 // erasing vs painting event
 if (erasing) {
@@ -164,3 +181,9 @@ if (erasing) {
   canvas.addEventListener("mousemove", draw);
   canvas.addEventListener("mouseout", finishPaint);
 }
+
+window.addEventListener("keypress", (e) => {
+  if (e.key === "e") {
+    console.log(closeBtn.parentElement.offsetTop);
+  }
+});

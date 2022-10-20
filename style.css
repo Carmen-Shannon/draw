@@ -34,3 +34,14 @@ button {
     justify-self: flex-end;
     align-self: center;
 }
+
+span {
+    position: fixed;
+    display: none;
+    color: red;
+    cursor: pointer;
+    height: 15px;
+    width: 15px;
+    text-align: center;
+    user-select: none;
+}
