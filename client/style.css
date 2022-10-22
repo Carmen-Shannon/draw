@@ -18,22 +18,24 @@ body {
 #tools {
     background-color: white;
     height: 50px;
-    width: 800px;
+    width: 400px;
     margin: auto;
     border-radius: 0px 0px 8px 8px;
     display: flex;
+    align-items: center;
+    justify-content: space-evenly;
 }
 
 button {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
     user-select: none;
 }
 
 #preview {
     border-radius: 50%;
     background-color: black;
-    justify-self: flex-end;
+    position: inherit;
     align-self: center;
     border: 1px solid black;
 }
@@ -47,4 +49,24 @@ span {
     width: 15px;
     text-align: center;
     user-select: none;
+}
+
+#leftcontainer, #rightcontainer {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: space-around;
+    margin: 15px;
+}
+
+#container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.playerbox {
+    width: 79px;
+    height: 19px;
+    border: 1px solid black;
 }

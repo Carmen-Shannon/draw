@@ -1,4 +1,5 @@
 // Global Variables
+import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js";
 import {
   canvas,
   ctx,
@@ -10,7 +11,11 @@ import {
   smaller,
   modal,
   closeBtn,
-} from "/js/Globals.js";
+  leftPlayers,
+  rightPlayers,
+} from "./js/Globals.js";
+
+const socket = io("ws://localhost:8080");
 
 // modifiable variables
 let painting = false;
@@ -19,6 +24,36 @@ let lineSize = 10;
 let color = "black";
 
 // functions
+function updatePlayers(playerList) {
+  for (let p of document.getElementsByClassName("playerbox")) {
+    p.remove();
+  }
+  for (let p of playerList) {
+    if (document.getElementById(p.id)) {
+      document.getElementById(p.id).remove();
+    }
+    createPlayer(p);
+  }
+}
+
+function createPlayer(newPlayer) {
+  let el = document.createElement("div");
+  el.className = "playerbox";
+  el.id = newPlayer.id;
+  el.innerHTML = newPlayer.id;
+  if (leftPlayers.childElementCount >= 4) {
+    rightPlayers.appendChild(el);
+  } else {
+    leftPlayers.appendChild(el);
+  }
+}
+
+function removePlayer(id) {
+  if (document.getElementById(id)) {
+    document.getElementById(id).remove();
+  }
+}
+
 function colorModalOnClick() {
   for (let c of modal.children) {
     if (c.id === "closemodal") continue;
@@ -103,6 +138,7 @@ function toggleEraser() {
 
 function clearBoard() {
   canvas.width = canvas.width;
+  socket.emit("clear");
 }
 
 function increaseBrush() {
@@ -133,6 +169,7 @@ function startPaint(e) {
 function finishPaint() {
   painting = false;
   ctx.beginPath();
+  socket.emit("finishdraw");
 }
 
 function startErase(e) {
@@ -158,7 +195,47 @@ function draw(e) {
   ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(e.offsetX, e.offsetY);
+  const drawCoord = {
+    x: e.offsetX,
+    y: e.offsetY,
+    ls: lineSize,
+    clr: color,
+  };
+  socket.emit("draw", drawCoord);
 }
+
+socket.on("draw", (coord) => {
+  ctx.strokeStyle = coord.clr;
+  ctx.lineWidth = coord.ls;
+  ctx.lineCap = "round";
+  ctx.lineTo(coord.x, coord.y);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(coord.x, coord.y);
+});
+
+socket.on("finishdraw", () => {
+  ctx.beginPath();
+});
+
+socket.on("clear", () => {
+  canvas.width = canvas.width;
+});
+
+socket.on("newplayer", ({ newPlayer, playerList }) => {
+  updatePlayers(playerList);
+  console.log(`new player joined - ${newPlayer.id}`);
+  console.log(`your player id - ${socket.id}`);
+  console.log(`current players - ${playerList.length}`);
+});
+
+socket.on("removedplayer", ({ newPlayer, playerList }) => {
+  removePlayer(newPlayer.id);
+  updatePlayers(playerList);
+  console.log(`player disconnected - ${newPlayer.id}`);
+  console.log(`your player id - ${socket.id}`);
+  console.log(`current players - ${playerList.length}`);
+});
 
 // button events
 eraser.addEventListener("click", toggleEraser);
@@ -175,6 +252,10 @@ window.addEventListener("load", () => {
   resizeBrush();
   setColors();
   colorModalOnClick();
+});
+
+window.addEventListener("beforeunload", () => {
+  socket.emit("disconnect");
 });
 
 closeBtn.addEventListener("click", toggleModal);
