@@ -42,13 +42,20 @@ function setPaintControls() {
   canvas.addEventListener("mousemove", draw);
   canvas.addEventListener("mouseout", finishPaint);
   tools.style.display = "flex";
+  eraser.addEventListener("click", toggleEraser);
+  clear.addEventListener("click", clearBoard);
+  bigger.addEventListener("click", increaseBrush);
+  smaller.addEventListener("click", decreaseBrush);
+  colorPicker.addEventListener("click", () => {
+    toggleModal();
+  });
+  closeBtn.addEventListener("click", toggleModal);
   recolor();
   resizeBrush();
   setColors();
   colorModalOnClick();
   chat.style.display = "none";
   chat.disabled = true;
-  socket.emit("newpainter", socket.id);
 }
 
 function clearPaintControls() {
@@ -254,19 +261,12 @@ socket.on("messagedelete", (id) => {
   deleteMessages(id);
 });
 
-socket.on("newpainter", (np) => {
-  if (socket.id === np.id) {
-    title.innerText = `You are currently drawing!`;
-  } else {
-    title.innerText = `${np.name} is currently drawing!`;
-  }
-});
-
-socket.on("currentpos", (currentPos) => {
-  if (getPainterId(currentPos) === socket.id) {
-    setPaintControls();
-  }
-});
+// socket.on("currentpos", (currentPos) => {
+//   if (getPainterId(currentPos) === socket.id) {
+//     title.innerText = `You are currently drawing!`;
+//     setPaintControls();
+//   }
+// });
 
 socket.on("connect", () => {
   clearPaintControls();
@@ -296,52 +296,48 @@ socket.on("clear", () => {
 
 socket.on("newplayer", ({ newPlayer, playerList }) => {
   updatePlayers(playerList);
-  console.log(`new player joined - ${newPlayer.id}`);
-  console.log(`your player id - ${socket.id}`);
-  console.log(`current players - ${playerList.length}`);
 });
 
 socket.on("removedplayer", ({ newPlayer, playerList }) => {
   removePlayer(newPlayer.id);
   updatePlayers(playerList);
-  console.log(`player disconnected - ${newPlayer.id}`);
-  console.log(`your player id - ${socket.id}`);
-  console.log(`current players - ${playerList.length}`);
 });
 
-socket.on("poschange", (currentPos) => {
-  if (getPainterId(currentPos) === socket.id) {
+socket.on("poschange", (player) => {
+  canvas.width = canvas.width;
+  if (socket.id === player.id) {
     setPaintControls();
+    title.innerText = `You are currently drawing!`;
   } else {
     clearPaintControls();
+    title.innerText = `${player.name} is currently drawing!`;
   }
 });
 
 // button events
-eraser.addEventListener("click", toggleEraser);
-clear.addEventListener("click", clearBoard);
-bigger.addEventListener("click", increaseBrush);
-smaller.addEventListener("click", decreaseBrush);
-colorPicker.addEventListener("click", () => {
-  toggleModal();
-});
+// eraser.addEventListener("click", toggleEraser);
+// clear.addEventListener("click", clearBoard);
+// bigger.addEventListener("click", increaseBrush);
+// smaller.addEventListener("click", decreaseBrush);
+// colorPicker.addEventListener("click", () => {
+//   toggleModal();
+// });
+// closeBtn.addEventListener("click", toggleModal);
 
 window.addEventListener("beforeunload", () => {
   socket.emit("disconnect");
 });
 
-closeBtn.addEventListener("click", toggleModal);
-
 // painting event
-canvas.addEventListener("mousedown", startPaint);
-canvas.addEventListener("mouseup", finishPaint);
-canvas.addEventListener("mousemove", draw);
-canvas.addEventListener("mouseout", finishPaint);
+// canvas.addEventListener("mousedown", startPaint);
+// canvas.addEventListener("mouseup", finishPaint);
+// canvas.addEventListener("mousemove", draw);
+// canvas.addEventListener("mouseout", finishPaint);
 
 window.addEventListener("keypress", (e) => {
-  // if (e.key === "e") {
-  //   socket.emit("starttimer");
-  // }
+  if (e.key === "e") {
+    socket.emit("starttimer");
+  }
   if (e.key === "Enter") {
     socket.emit("newmessage", {
       msg: chat.value,

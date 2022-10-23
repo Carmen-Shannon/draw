@@ -49,8 +49,8 @@ class Timer {
     this.running = true;
     const t = setInterval(() => {
       if (this.time === 0) {
-        this.server.emit(event, data);
         func();
+        this.server.emit(event, data);
         this.reset();
         clearInterval(t);
         return;
@@ -61,6 +61,7 @@ class Timer {
   }
 
   tick() {
+    console.log(this.time);
     this.time--;
   }
 }

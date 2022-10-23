@@ -17,13 +17,13 @@ const findPlayer = (id) => {
   return null;
 };
 
-function posChange() {
+const posChange = () => {
   if (currentPos + 1 < players.length) {
     currentPos += 1;
     return;
   }
   currentPos = 0;
-}
+};
 
 io.on("connection", (socket) => {
   if (players.length >= 8) {
@@ -41,24 +41,29 @@ io.on("connection", (socket) => {
     playerList: players,
   });
 
-  socket.on("newmessage", (message) => {
-    if (message.id === players[currentPos].id) {
+  socket.on("newmessage", ({ msg, id }) => {
+    console.log(id, currentPos);
+    if (id === players[currentPos].id) {
       return;
     }
-    if (timers.has(message.id)) {
-      io.emit("messagedelete", message.id);
-      timers.get(message.id).stop();
-      timers.delete(message.id);
+    if (timers.has(id)) {
+      io.emit("messagedelete", id);
+      timers.get(id).stop();
+      timers.delete(id);
     }
     const msgTimer = new Timer(io, 3);
-    msgTimer.start("messagedelete", message.id);
-    timers.set(message.id, msgTimer);
-    io.emit("showmessage", message);
+    msgTimer.start("messagedelete", id);
+    timers.set(id, msgTimer);
+    io.emit("showmessage", { msg: msg, id: id });
   });
 
   socket.on("starttimer", () => {
-    const t = new Timer(io, 20);
-    t.start("poschange", currentPos, posChange);
+    const t = new Timer(io, 5);
+    t.start(
+      "poschange",
+      players[currentPos + 1 < players.length ? currentPos + 1 : 0],
+      posChange
+    );
   });
 
   socket.on("newpainter", (id) => {
@@ -79,16 +84,18 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("player left");
-    players.pop(players.indexOf(socket.id));
+    if (socket.id === players[currentPos].id) {
+      players.pop(players.indexOf(socket.id));
+      posChange();
+      io.emit("poschange", players[currentPos]);
+    }
     io.emit("removedplayer", {
       newPlayer: newPlayer,
       playerList: players,
     });
-    posChange();
   });
 
-  io.emit("currentpos", currentPos);
+  io.emit("poschange", players[currentPos]);
 });
 
 http.listen(8080, () => {
