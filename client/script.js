@@ -13,7 +13,10 @@ import {
   closeBtn,
   leftPlayers,
   rightPlayers,
+  tools,
+  title,
 } from "./js/Globals.js";
+//import {Func as F} from './js/Func.js';
 
 const socket = io("ws://localhost:8080");
 
@@ -24,6 +27,31 @@ let lineSize = 10;
 let color = "black";
 
 // functions
+function setPaintControls() {
+  canvas.addEventListener("mousedown", startPaint);
+  canvas.addEventListener("mouseup", finishPaint);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseout", finishPaint);
+  tools.style.display = "flex";
+  recolor();
+  resizeBrush();
+  setColors();
+  colorModalOnClick();
+  socket.emit("newpainter", socket.id);
+}
+
+function clearPaintControls() {
+  canvas.removeEventListener("mousedown", startPaint);
+  canvas.removeEventListener("mouseup", finishPaint);
+  canvas.removeEventListener("mousemove", draw);
+  canvas.removeEventListener("mouseout", finishPaint);
+  tools.style.display = "none";
+}
+
+function getPainterId(pos) {
+  return document.getElementsByClassName("playerbox")[pos].id;
+}
+
 function updatePlayers(playerList) {
   for (let p of document.getElementsByClassName("playerbox")) {
     p.remove();
@@ -129,9 +157,7 @@ function toggleModal() {
 function toggleEraser() {
   erasing = !erasing;
   if (erasing) {
-    colorPicker.style.backgroundColor = "#faeddd";
-    preview.style.backgroundColor = "#faeddd";
-  } else {
+    color = "#faeddd";
     recolor();
   }
 }
@@ -172,23 +198,9 @@ function finishPaint() {
   socket.emit("finishdraw");
 }
 
-function startErase(e) {
-  erasing = true;
-  draw(e);
-}
-
-function finishErase() {
-  erasing = false;
-  ctx.beginPath();
-}
-
 function draw(e) {
   if (!painting) return;
-  if (erasing) {
-    ctx.strokeStyle = "#faeddd";
-  } else {
-    ctx.strokeStyle = color;
-  }
+  ctx.strokeStyle = color;
   ctx.lineWidth = lineSize;
   ctx.lineCap = "round";
   ctx.lineTo(e.offsetX, e.offsetY);
@@ -203,6 +215,28 @@ function draw(e) {
   };
   socket.emit("draw", drawCoord);
 }
+
+socket.on("newpainter", (np) => {
+  if (socket.id === np.id) {
+    title.innerText = `You are currently drawing!`;
+  } else {
+    title.innerText = `${np.name} is currently drawing!`;
+  }
+});
+
+socket.on("currentpos", (currentPos) => {
+  if (getPainterId(currentPos) === socket.id) {
+    setPaintControls();
+  }
+});
+
+socket.on("connect", () => {
+  clearPaintControls();
+});
+
+socket.on("disconnect", () => {
+  setPaintControls();
+});
 
 socket.on("draw", (coord) => {
   ctx.strokeStyle = coord.clr;
@@ -237,6 +271,18 @@ socket.on("removedplayer", ({ newPlayer, playerList }) => {
   console.log(`current players - ${playerList.length}`);
 });
 
+socket.on("timertick", (roundTime) => {
+  console.log(roundTime);
+});
+
+socket.on("poschange", (currentPos) => {
+  if (getPainterId(currentPos) === socket.id) {
+    setPaintControls();
+  } else {
+    clearPaintControls();
+  }
+});
+
 // button events
 eraser.addEventListener("click", toggleEraser);
 clear.addEventListener("click", clearBoard);
@@ -246,35 +292,20 @@ colorPicker.addEventListener("click", () => {
   toggleModal();
 });
 
-// set default color to black and size to 10 on load
-window.addEventListener("load", () => {
-  recolor();
-  resizeBrush();
-  setColors();
-  colorModalOnClick();
-});
-
 window.addEventListener("beforeunload", () => {
   socket.emit("disconnect");
 });
 
 closeBtn.addEventListener("click", toggleModal);
 
-// erasing vs painting event
-if (erasing) {
-  canvas.addEventListener("mousedown", startErase);
-  canvas.addEventListener("mouseup", finishErase);
-  canvas.addEventListener("mousemove", draw);
-  canvas.addEventListener("mouseout", finishErase);
-} else {
-  canvas.addEventListener("mousedown", startPaint);
-  canvas.addEventListener("mouseup", finishPaint);
-  canvas.addEventListener("mousemove", draw);
-  canvas.addEventListener("mouseout", finishPaint);
-}
+// painting event
+canvas.addEventListener("mousedown", startPaint);
+canvas.addEventListener("mouseup", finishPaint);
+canvas.addEventListener("mousemove", draw);
+canvas.addEventListener("mouseout", finishPaint);
 
 window.addEventListener("keypress", (e) => {
   if (e.key === "e") {
-    console.log(closeBtn.parentElement.offsetTop);
+    socket.emit("starttimer");
   }
 });

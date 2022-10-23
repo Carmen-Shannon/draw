@@ -3,6 +3,15 @@ class Players {
     this.list = [];
   }
 
+  findPlayer(id) {
+    for (let p of this.list) {
+      if (p.id === id) {
+        return p;
+      }
+    }
+    return null;
+  }
+
   length() {
     return this.list.length;
   }

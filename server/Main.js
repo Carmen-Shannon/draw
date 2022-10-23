@@ -3,10 +3,50 @@ const io = require("socket.io")(http, {
   cors: { origin: "*" },
 });
 const { Player } = require("./models/Player");
-
+let currentPos = 0;
 const players = [];
-let currentPos = 1;
-let timer = 20;
+
+const findPlayer = (id) => {
+  for (let p of players) {
+    if (p.id === id) {
+      return p;
+    }
+  }
+  return null;
+};
+
+const Timer = {
+  time: 5,
+  running: false,
+  reset() {
+    this.time = 5;
+    this.running = false;
+  },
+  start() {
+    this.running = true;
+    const t = setInterval(async () => {
+      if (this.time === 0) {
+        await io.emit("timertick", this.time);
+        posChange();
+        this.reset();
+        clearInterval(t);
+        return;
+      }
+      await io.emit("timertick", this.time);
+      this.time--;
+    }, 1000);
+  },
+};
+
+function posChange() {
+  if (currentPos + 1 < players.length) {
+    currentPos += 1;
+    io.emit("poschange", currentPos);
+    return;
+  }
+  currentPos = 0;
+  io.emit("poschange", currentPos);
+}
 
 io.on("connection", (socket) => {
   if (players.length >= 8) {
@@ -14,17 +54,23 @@ io.on("connection", (socket) => {
     console.log("lobby full");
     return;
   }
-  console.log("player joined");
-  console.log(players);
 
   let newPlayer = new Player(socket.id, socket.id, players.length + 1);
   players.push(newPlayer);
+  console.log("player joined");
+  console.log(newPlayer);
   io.emit("newplayer", {
     newPlayer: newPlayer,
     playerList: players,
   });
 
-  socket.on("newpainter", (newPainter) => {
+  socket.on("starttimer", () => {
+    if (Timer.running) return;
+    Timer.start(io);
+  });
+
+  socket.on("newpainter", (id) => {
+    let newPainter = findPlayer(id);
     io.emit("newpainter", newPainter);
   });
 
@@ -43,14 +89,14 @@ io.on("connection", (socket) => {
   socket.on("disconnect", async () => {
     console.log("player left");
     await players.pop(players.indexOf(socket.id));
-    if (newPlayer.isDrawing) {
-      // end round
-    }
     await io.emit("removedplayer", {
       newPlayer: newPlayer,
       playerList: players,
     });
+    posChange();
   });
+
+  io.emit("currentpos", currentPos);
 });
 
 http.listen(8080, () => {

@@ -8,8 +8,10 @@ const bigger = document.getElementById("bigger");
 const smaller = document.getElementById("smaller");
 const modal = document.getElementById("colormodal");
 const closeBtn = document.getElementById("closemodal");
-const leftPlayers = document.getElementById('leftcontainer');
-const rightPlayers = document.getElementById('rightcontainer');
+const leftPlayers = document.getElementById("leftcontainer");
+const rightPlayers = document.getElementById("rightcontainer");
+const tools = document.getElementById("tools");
+const title = document.getElementById("title");
 
 export {
   canvas,
@@ -23,5 +25,7 @@ export {
   modal,
   closeBtn,
   leftPlayers,
-  rightPlayers
+  rightPlayers,
+  tools,
+  title,
 };

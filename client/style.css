@@ -57,6 +57,7 @@ span {
     align-content: center;
     justify-content: space-around;
     margin: 15px;
+    width: 200px;
 }
 
 #container {
@@ -66,7 +67,13 @@ span {
 }
 
 .playerbox {
-    width: 79px;
+    width: 159;
     height: 19px;
     border: 1px solid black;
+}
+
+#title {
+    text-align: center;
+    margin: 0 auto;
+
 }
