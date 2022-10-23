@@ -8,32 +8,35 @@
     <title>Document</title>
   </head>
   <body>
-    <h3 id="title">test</h3>
-    <div id="container">
-      <div id="leftcontainer"></div>
-      <div id="midcontainer">
-        <canvas id="game" width="700" height="600"></canvas>
-        <div id="tools">
-          <button id="eraser">erase</button>
-          <button id="clear">clear</button>
-          <button id="bigger">+</button>
-          <button id="smaller">-</button>
-          <button id="color"></button>
-          <div id="colormodal" style="display: none">
-            <span id="closemodal">X</span>
-            <button id="black"></button>
-            <button id="violet"></button>
-            <button id="indigo"></button>
-            <button id="blue"></button>
-            <button id="green"></button>
-            <button id="yellow"></button>
-            <button id="orange"></button>
-            <button id="red"></button>
+    <div id="nameselect">
+      <h3 id="title"></h3>
+      <div id="container">
+        <div id="leftcontainer"></div>
+        <div id="midcontainer">
+          <canvas id="game" width="700" height="600"></canvas>
+          <div id="tools">
+            <button id="eraser">erase</button>
+            <button id="clear">clear</button>
+            <button id="bigger">+</button>
+            <button id="smaller">-</button>
+            <button id="color"></button>
+            <div id="colormodal" style="display: none">
+              <span id="closemodal">X</span>
+              <button id="black"></button>
+              <button id="violet"></button>
+              <button id="indigo"></button>
+              <button id="blue"></button>
+              <button id="green"></button>
+              <button id="yellow"></button>
+              <button id="orange"></button>
+              <button id="red"></button>
+            </div>
+            <div id="preview"></div>
           </div>
-          <div id="preview"></div>
         </div>
+        <div id="rightcontainer"></div>
       </div>
-      <div id="rightcontainer"></div>
+      <input type="text" name="chatbox" id="chatbox" maxlength="32" />
     </div>
     <script type="module" src="script.js"></script>
   </body>

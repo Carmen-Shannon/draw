@@ -15,8 +15,8 @@ import {
   rightPlayers,
   tools,
   title,
+  chat,
 } from "./js/Globals.js";
-//import {Func as F} from './js/Func.js';
 
 const socket = io("ws://localhost:8080");
 
@@ -27,6 +27,15 @@ let lineSize = 10;
 let color = "black";
 
 // functions
+function deleteMessages(id) {
+  let messages = document.getElementsByClassName("message");
+  for (let m of messages) {
+    if (m.id.includes(id)) {
+      m.remove();
+    }
+  }
+}
+
 function setPaintControls() {
   canvas.addEventListener("mousedown", startPaint);
   canvas.addEventListener("mouseup", finishPaint);
@@ -37,6 +46,8 @@ function setPaintControls() {
   resizeBrush();
   setColors();
   colorModalOnClick();
+  chat.style.display = "none";
+  chat.disabled = true;
   socket.emit("newpainter", socket.id);
 }
 
@@ -46,6 +57,8 @@ function clearPaintControls() {
   canvas.removeEventListener("mousemove", draw);
   canvas.removeEventListener("mouseout", finishPaint);
   tools.style.display = "none";
+  chat.style.display = "flex";
+  chat.disabled = false;
 }
 
 function getPainterId(pos) {
@@ -216,6 +229,31 @@ function draw(e) {
   socket.emit("draw", drawCoord);
 }
 
+const createMessage = (message) => {
+  let el = document.createElement("div");
+  el.style.width = `${message.length * 7}px`;
+  el.style.textAlign = "center";
+  el.style.backgroundColor = "white";
+  el.style.borderRadius = "4px";
+  el.innerText = message;
+  el.style.position = "absolute";
+  el.className = "message";
+  return el;
+};
+
+socket.on("showmessage", ({ msg, id }) => {
+  let sender = document.getElementById(id);
+  let msgUser = createMessage(msg);
+  msgUser.id = `${msg}-${id}`;
+  msgUser.style.left = sender.offsetLeft;
+  msgUser.style.top = sender.offsetTop;
+  sender.appendChild(msgUser);
+});
+
+socket.on("messagedelete", (id) => {
+  deleteMessages(id);
+});
+
 socket.on("newpainter", (np) => {
   if (socket.id === np.id) {
     title.innerText = `You are currently drawing!`;
@@ -271,10 +309,6 @@ socket.on("removedplayer", ({ newPlayer, playerList }) => {
   console.log(`current players - ${playerList.length}`);
 });
 
-socket.on("timertick", (roundTime) => {
-  console.log(roundTime);
-});
-
 socket.on("poschange", (currentPos) => {
   if (getPainterId(currentPos) === socket.id) {
     setPaintControls();
@@ -305,7 +339,14 @@ canvas.addEventListener("mousemove", draw);
 canvas.addEventListener("mouseout", finishPaint);
 
 window.addEventListener("keypress", (e) => {
-  if (e.key === "e") {
-    socket.emit("starttimer");
+  // if (e.key === "e") {
+  //   socket.emit("starttimer");
+  // }
+  if (e.key === "Enter") {
+    socket.emit("newmessage", {
+      msg: chat.value,
+      id: socket.id,
+    });
+    chat.value = "";
   }
 });

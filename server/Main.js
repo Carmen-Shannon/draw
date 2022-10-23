@@ -3,8 +3,10 @@ const io = require("socket.io")(http, {
   cors: { origin: "*" },
 });
 const { Player } = require("./models/Player");
+const Timer = require("./services/Timer.js");
 let currentPos = 0;
 const players = [];
+const timers = new Map();
 
 const findPlayer = (id) => {
   for (let p of players) {
@@ -15,37 +17,12 @@ const findPlayer = (id) => {
   return null;
 };
 
-const Timer = {
-  time: 5,
-  running: false,
-  reset() {
-    this.time = 5;
-    this.running = false;
-  },
-  start() {
-    this.running = true;
-    const t = setInterval(async () => {
-      if (this.time === 0) {
-        await io.emit("timertick", this.time);
-        posChange();
-        this.reset();
-        clearInterval(t);
-        return;
-      }
-      await io.emit("timertick", this.time);
-      this.time--;
-    }, 1000);
-  },
-};
-
 function posChange() {
   if (currentPos + 1 < players.length) {
     currentPos += 1;
-    io.emit("poschange", currentPos);
     return;
   }
   currentPos = 0;
-  io.emit("poschange", currentPos);
 }
 
 io.on("connection", (socket) => {
@@ -64,9 +41,24 @@ io.on("connection", (socket) => {
     playerList: players,
   });
 
+  socket.on("newmessage", (message) => {
+    if (message.id === players[currentPos].id) {
+      return;
+    }
+    if (timers.has(message.id)) {
+      io.emit("messagedelete", message.id);
+      timers.get(message.id).stop();
+      timers.delete(message.id);
+    }
+    const msgTimer = new Timer(io, 3);
+    msgTimer.start("messagedelete", message.id);
+    timers.set(message.id, msgTimer);
+    io.emit("showmessage", message);
+  });
+
   socket.on("starttimer", () => {
-    if (Timer.running) return;
-    Timer.start(io);
+    const t = new Timer(io, 20);
+    t.start("poschange", currentPos, posChange);
   });
 
   socket.on("newpainter", (id) => {
@@ -86,10 +78,10 @@ io.on("connection", (socket) => {
     io.emit("clear");
   });
 
-  socket.on("disconnect", async () => {
+  socket.on("disconnect", () => {
     console.log("player left");
-    await players.pop(players.indexOf(socket.id));
-    await io.emit("removedplayer", {
+    players.pop(players.indexOf(socket.id));
+    io.emit("removedplayer", {
       newPlayer: newPlayer,
       playerList: players,
     });

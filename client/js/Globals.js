@@ -12,6 +12,7 @@ const leftPlayers = document.getElementById("leftcontainer");
 const rightPlayers = document.getElementById("rightcontainer");
 const tools = document.getElementById("tools");
 const title = document.getElementById("title");
+const chat = document.getElementById("chatbox");
 
 export {
   canvas,
@@ -28,4 +29,5 @@ export {
   rightPlayers,
   tools,
   title,
+  chat,
 };
